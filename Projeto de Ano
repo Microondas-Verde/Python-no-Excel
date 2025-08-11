@@ -1,0 +1,162 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyNmvzI2nKMgqwGzjwoGQy/y",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Microondas-Verde/Python-no-Excel/blob/main/Projeto%20de%20Ano\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "rlHgvCDidi7e",
+        "outputId": "d5541d9b-9783-46f7-a060-8c64e0492350"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Drive already mounted at /content/drive; to attempt to forcibly remount, call drive.mount(\"/content/drive\", force_remount=True).\n",
+            "Digite suas informações:\n",
+            "Nome: Eduardo\n",
+            "Idade: 4\n",
+            "Email: eduzinka36@exemplo.com\n",
+            "CPF: 456.123.789-00\n",
+            "Cidade: Fortaleza\n",
+            "Estado: Ceará\n",
+            "Carro: Bicicleta\n",
+            "Música: Introdução em Dó Menor\n",
+            "Artista: MC DOM LP, GP DA ZL, MC Nito, Mc Gw\n",
+            "\n",
+            "Arquivo atualizado no Google Drive!\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/tmp/ipython-input-1516665541.py:51: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise an error in a future version of pandas. Value '4' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.\n",
+            "  dataframe.loc[dataframe['Nome'] == person_name, col] = value\n"
+          ]
+        }
+      ],
+      "source": [
+        "from google.colab import drive\n",
+        "import os\n",
+        "\n",
+        "drive.mount('/content/drive')\n",
+        "\n",
+        "import pandas as pd\n",
+        "\n",
+        "# Caminho do arquivo no Drive\n",
+        "caminho = '/content/drive/MyDrive/Colab Notebooks/Python.xlsx'\n",
+        "\n",
+        "# Verifica e cria diretório se necessário\n",
+        "directory = os.path.dirname(caminho)\n",
+        "if not os.path.exists(directory):\n",
+        "    os.makedirs(directory)\n",
+        "\n",
+        "# Verifica e cria arquivo se necessário\n",
+        "if not os.path.exists(caminho):\n",
+        "    # Ensure all columns are initialized, including new ones\n",
+        "    df = pd.DataFrame({'Nome': [], 'Idade': [], 'Email': [], 'CPF': [], 'Cidade': [], 'Estado': [], 'Carro': [], 'Música': [], 'Artista': []})\n",
+        "    df.to_excel(caminho, index=False)\n",
+        "\n",
+        "# Carregar o arquivo existente\n",
+        "df = pd.read_excel(caminho)\n",
+        "\n",
+        "# Garante que todas colunas existam\n",
+        "for col in ['Nome', 'Idade', 'Email', 'CPF', 'Cidade', 'Estado', 'Carro', 'Música', 'Artista']:\n",
+        "    if col not in df.columns:\n",
+        "        df[col] = None\n",
+        "\n",
+        "# Remove duplicados\n",
+        "if 'Nome' in df.columns:\n",
+        "    df.drop_duplicates(subset=['Nome'], keep='last', inplace=True)\n",
+        "\n",
+        "# Função melhorada para adicionar/atualizar\n",
+        "def add_or_update_person(dataframe, person_data):\n",
+        "    person_name = person_data.get('Nome')\n",
+        "    if person_name is None:\n",
+        "        print(\"Error: 'Nome' is required in person_data.\")\n",
+        "        return dataframe # Return the original dataframe if no name is provided\n",
+        "\n",
+        "    # Add new columns if they don't exist in the dataframe\n",
+        "    for col in person_data.keys():\n",
+        "        if col not in dataframe.columns:\n",
+        "            dataframe[col] = None\n",
+        "\n",
+        "    if person_name in dataframe['Nome'].values:\n",
+        "        # If the person exists, update the existing row\n",
+        "        for col, value in person_data.items():\n",
+        "            # Only update if the column exists in the dataframe\n",
+        "            if col in dataframe.columns:\n",
+        "                dataframe.loc[dataframe['Nome'] == person_name, col] = value\n",
+        "    else:\n",
+        "        # If the person does not exist, add a new row\n",
+        "        dataframe = pd.concat([dataframe, pd.DataFrame([person_data])], ignore_index=True)\n",
+        "    return dataframe\n",
+        "\n",
+        "# --- Get user input for a new person ---\n",
+        "print(\"Digite suas informações:\")\n",
+        "nome = input(\"Nome: \")\n",
+        "idade = input(\"Idade: \") # Note: input is string, may need conversion later\n",
+        "email = input(\"Email: \")\n",
+        "cpf = input(\"CPF: \")\n",
+        "cidade = input(\"Cidade: \")\n",
+        "estado = input(\"Estado: \")\n",
+        "carro = input(\"Carro: \")\n",
+        "musica = input(\"Música: \")\n",
+        "artista = input(\"Artista: \")\n",
+        "\n",
+        "# Create a dictionary with the user's input\n",
+        "person_data_user = {\n",
+        "    'Nome': nome,\n",
+        "    'Idade': idade,\n",
+        "    'Email': email,\n",
+        "    'CPF': cpf,\n",
+        "    'Cidade': cidade,\n",
+        "    'Estado': estado,\n",
+        "    'Carro': carro,\n",
+        "    'Música': musica,\n",
+        "    'Artista': artista\n",
+        "}\n",
+        "\n",
+        "# Add or update the person using the user's input\n",
+        "df = add_or_update_person(df, person_data_user)\n",
+        "# --- End of user input section ---\n",
+        "\n",
+        "\n",
+        "# Salvar de volta no mesmo arquivo\n",
+        "df.to_excel(caminho, index=False)\n",
+        "\n",
+        "print(\"\\nArquivo atualizado no Google Drive!\")"
+      ]
+    }
+  ]
+}
